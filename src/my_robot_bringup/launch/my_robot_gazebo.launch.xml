@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+
+<launch>
+
+    <arg name="launch_only_arm" default="false" />
+
+        <let name="urdf_path" 
+            value="$(find-pkg-share my_robot_description)/urdf/standalone_arm.urdf.xacro"
+            if="$(var launch_only_arm)" />
+        <let name="urdf_path" 
+            value="$(find-pkg-share my_robot_description)/urdf/my_robot.urdf.xacro"
+            unless="$(var launch_only_arm)" />   
+        <let name="gazebo_config_path" 
+            value="$(find-pkg-share my_robot_bringup)/config/gazebo_bridge.yaml" />
+        <let name="rviz_config_path" 
+            value="$(find-pkg-share my_robot_description)/rviz/arm_config.rviz"
+            if="$(var launch_only_arm)" />
+        <let name="rviz_config_path" 
+            value="$(find-pkg-share my_robot_description)/rviz/urdf_config_far_view.rviz"
+            unless="$(var launch_only_arm)" />
+        <let name="world_path"
+            value="$(find-pkg-share my_robot_bringup)/worlds/test_world.sdf" />
+
+    <node pkg="robot_state_publisher" exec="robot_state_publisher">
+        <param name="robot_description" type="str" value="$(command 'xacro $(var urdf_path)')" />
+    </node>
+    
+    <!-- A launch file is included, while a runnable executable node is started with the <node> tag -->
+    <include file="$(find-pkg-share ros_gz_sim)/launch/gz_sim.launch.py" >
+        <arg name="gz_args" value="$(var world_path) -r" />
+
+        <!-- We don't need to have $(command '') because this is an arg, that other one was a param -->   
+        <!-- <arg name="gz_args" value="empty.sdf -r" /> -->
+    </include>
+
+    <node pkg="ros_gz_sim" exec="create" args="-topic robot_description" />
+
+    <node pkg="ros_gz_bridge" exec="parameter_bridge">
+        <param name="config_file" value="$(var gazebo_config_path)" />
+    </node>
+
+    <node pkg="rviz2" exec="rviz2" output="screen"
+          args="-d $(var rviz_config_path)" />
+
+</launch>
+
+<!--
+  NOTES
+
+    The package ros_gz_sim is provided through "source /opt/ros/jazzy"
+
+    In <param name="" value="" type="" >
+    no type=    → "ROS, figure out what type this value is and load it to name parameter"
+    type="str"  → "ROS, this IS a string; don't try to figure it out"
+
+    ROS's own release documentation explicitly recommends type="str" when a launch parameter needs to be interpreted as a string.
+
+    Gazebo and ROS are unrelated, they cannot see eachother's topics for example. We need a so-called "bridge".
+
+    ros2 run teleop_twist_keyboard teleop_twist_keyboard let's you control the robot with keystrokes
+
+    We need to publish joint states, on display.launch.xml we used <node pkg="joint_state_publisher_gui" exec="joint_state_publisher_gui" />
+    which was provided to us from /opt/ros/jazzy. Here, we use the plugin <plugin filename="gz-sim-joint-state-publisher-system" name="gz::sim::systems::JointStatePublisher">
+
+    The <arg name="launch_only_arm" default="0" /> makes if-else logic, here if-unless
+    AND it makes so it can be changed at launch from the terminal by writing
+    ros2 launch my_robot_bringup my_robot_gazebo.launch.xml launch_only_arm:=true (or false)
+    
+-->

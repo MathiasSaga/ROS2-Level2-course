@@ -1,0 +1,30 @@
+<?xml version="1.0"?>   <!-- Indicates that this file is an xml file -->
+
+<!-- The placement of tags is very important, e.g. material tag has to be -->
+<!-- defined in the robot tag, and then referred to in the visual tag -->
+
+<robot name="my_robot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <!-- We include common_properties first, we then wont have to include 
+         it in the other files, e.g. mobile_base.xacro, just including 
+         it in this gathering file is okay  -->
+    <xacro:include filename="common_properties.xacro" />
+    <xacro:include filename="mobile_base.xacro" />
+    <xacro:include filename="mobile_base_gazebo.xacro" />
+    <xacro:include filename="camera.xacro" />
+    <xacro:include filename="arm.xacro" />
+    <xacro:include filename="arm_gazebo.xacro" />
+
+    <!-- Adding the connecting joint on this file -->
+    <joint name="mobile_base_arm_joint" type="fixed">
+        <parent link="base_link" />
+        <child link="arm_base_link" />
+        <origin xyz="${base_length/3.0} 0 ${base_height}" rpy="0 0 0" />
+    </joint>
+
+</robot>
+
+<!-- 
+    By convention, this file is .urdf.xacro to indicate that it is the file that concerns the launch file
+    the other .xacro files are included in this .urdf.xacro file. 
+-->

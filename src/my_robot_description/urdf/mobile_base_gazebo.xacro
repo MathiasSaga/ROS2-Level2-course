@@ -1,0 +1,52 @@
+<?xml version="1.0"?> 
+
+<!-- This file is to control the robot in gazebo -->
+
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <!-- This part is for fixed joints to be smooth, mu are friction values -->
+    <gazebo reference="caster_wheel_link">
+        <mu1 value="0.1" />
+        <mu2 value="0.1" />
+    </gazebo>
+
+    <gazebo>
+        <plugin 
+            filename="gz-sim-diff-drive-system" 
+            name="gz::sim::systems::DiffDrive">
+            <left_joint>base_left_wheel_joint</left_joint>
+            <right_joint>base_right_wheel_joint</right_joint>
+            <wheel_separation>0.45</wheel_separation>
+            <wheel_radius>0.1</wheel_radius>
+            <frame_id>odom</frame_id>                           <!-- Navigation stack (i.e. Nav2, some other thing like MoveIt2) requires odom frame, so best practice is to name this odom -->
+            <child_frame_id>base_footprint</child_frame_id>
+        </plugin>
+    </gazebo>
+
+    <!-- This joint state publisher plugin is essential for almost any robot because we need to publish where the current *moveable* joints are.
+         This simulates the hardware, so the wheel encoder in this case, which tells us where the wheels are right now. -->
+    <!-- We need plugins for not fixed joints, the side wheels are the only not fixed joints (they are continuous) -->
+    <gazebo>
+        <plugin 
+            filename="gz-sim-joint-state-publisher-system" 
+            name="gz::sim::systems::JointStatePublisher">
+            <joint_name>base_left_wheel_joint</joint_name>
+            <joint_name>base_right_wheel_joint</joint_name>
+        </plugin>
+    </gazebo>
+
+</robot>
+
+<!--
+
+  NOTES
+    
+    Anything inside the gazebo tag only concerns gazebo, so for example, the joint states are published in gazebo, 
+    that's why we need to add a bridge to get the joint states in ros too.
+
+    If we don't specify the joint names in joint-state-publisher plugin, all the joint states are published, but it's better to be specific 
+    to make the code modular, for instance, when we add the arm, we need this plugin if we want to be able to run the arm separately.
+    If we hadn't specified joints for both mobile_base_gazebo and arm_gazebo, then we would publish joint states two times when we put
+    the robot together to one piece (mobile_base + arm).
+
+-->

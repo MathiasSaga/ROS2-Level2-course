@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+
+<robot name="my_robot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <xacro:include filename="common_properties.xacro" />
+    <xacro:include filename="arm.xacro" />
+    <xacro:include filename="arm_gazebo.xacro" />
+
+</robot>
+
+<!-- 
+    By convention, this file is .urdf.xacro to indicate that it is the file that concerns the launch file
+    the other .xacro files are included in this .urdf.xacro file. 
+-->

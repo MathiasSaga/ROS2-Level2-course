@@ -1,0 +1,68 @@
+<launch>
+
+     <arg name="launch_only_arm" default="false" />
+
+          <let name="urdf_path" 
+               value="$(find-pkg-share my_robot_description)/urdf/standalone_arm.urdf.xacro" 
+               if="$(var launch_only_arm)"/>
+               <let name="urdf_path" 
+               value="$(find-pkg-share my_robot_description)/urdf/my_robot.urdf.xacro"
+               unless="$(var launch_only_arm)" />
+          <let name="rviz_config_path" 
+               value="$(find-pkg-share my_robot_description)/rviz/arm_config.rviz"
+               if="$(var launch_only_arm)" />
+               <let name="rviz_config_path" 
+               value="$(find-pkg-share my_robot_description)/rviz/urdf_config_far_view.rviz"
+               unless="$(var launch_only_arm)" />
+
+     <node pkg="robot_state_publisher" exec="robot_state_publisher">
+          <param name="robot_description"
+                    type="str"
+                    value="$(command 'xacro $(var urdf_path)')" />   <!-- 'xacro $(var "variable name")' -->
+     </node>
+
+     <!-- These packages are accessable to us because in the bashrc we source /opt/ros/jazzy -->
+     <node pkg="joint_state_publisher_gui" exec="joint_state_publisher_gui" />
+
+     <!-- If I am to use the variable for the path rviz_config_path, I must do so with 
+          $(var rviz_config_path), not rviz_config_path, instead of that long thing/path -->
+     <!-- Edit, that is actually a far better approach because if I want to change the urdf or rviz path
+          then I can do it by changing the variable instead of scrolling down and searching for the path
+          manually -->
+     <node pkg="rviz2" exec="rviz2" output="screen" 
+               args="-d $(var rviz_config_path)" />
+
+</launch>
+
+<!--
+  USEFUL NOTES/ORIENTING
+
+    Context, here I was to start the pkg's robot_state_publisher and joint_state_publisher_gui.
+    I didn't know how I could myself figure out which pkg's to start and how I could start them
+    in the first place when they weren't in my workspace.
+
+    The answer the those two questions is that the packages ros sees comes from the sourcing.
+    In bashrc we source several directories, specifically /opt/ros/jazzy/setup.bash and 
+    ~/ros2_ws/install/setup.bash. This double sourcing is called an underlay + overlay model.
+    The latest source is the overlay, and if any package name exists on both layers, then the
+    overlay pkg overrides the underlay pkg.
+
+    One must know which packages/nodes to start beforehand. One can list all pkg's ros sees with
+    "ros2 pkg list"
+
+    ### "ros2 pkg list | grep <string>" finds the pkg's ros sees that has <string> in their name
+
+    ### "ros2 pkg executables <pkg_name>" gives all executables in <pkg_name>, if no <pkg_name> is 
+        provided then all "package executable" pairs are displayed
+    
+    ### "ros2 pkg prefix <pkg_name>" gives where ros found the package <pkg_name>, so it will give a path
+
+    ### "echo $AMENT_PREFIX_PATH" gives the overlay -> underlay situation in the shell,
+                                  so something like /home/mathias/ros2_ws/install/my_package:/opt/ros/jazzy
+                                                                                     overlay:underlay
+
+    The <arg name="launch_only_arm" default="0" /> makes if-else logic, here if-unless
+    AND it makes so it can be changed at launch from the terminal by writing
+    ros2 launch my_robot_description display.launch.xml launch_only_arm:=true (or false)
+
+-->

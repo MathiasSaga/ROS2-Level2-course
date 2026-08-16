@@ -65,5 +65,7 @@
     The <arg name="launch_only_arm" default="0" /> makes if-else logic, here if-unless
     AND it makes so it can be changed at launch from the terminal by writing
     ros2 launch my_robot_bringup my_robot_gazebo.launch.xml launch_only_arm:=true (or false)
+
+    ros2 run tf2_tools view_frames -o <file_name> generates pdf of a frame tree
     
 -->

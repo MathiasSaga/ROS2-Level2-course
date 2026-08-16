@@ -65,6 +65,6 @@
     AND it makes so it can be changed at launch from the terminal by writing
     ros2 launch my_robot_description display.launch.xml launch_only_arm:=true (or false)
 
-    ros2 run tf2_tools view_frames -o <file_name> generates pdf of a frame tree
+    ros2 run tf2_tools view_frames -o <file_name> generates pdf of the frame tree
 
 -->
